@@ -20,7 +20,7 @@ const categories = [
   { key: "goal", label: "Goal Fit", max: 0.5 }
 ];
 
-function roundScore(num) {
+function roundScore(num: number) {
   return Math.round(num * 10) / 10;
 }
 
