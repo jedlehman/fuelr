@@ -154,8 +154,7 @@ export default function FuelrApp() {
           </div>
           <button
   onClick={() => window.scrollTo({ top: 300, behavior: "smooth" })}
-  className="rounded-2xl bg-stone-100 px-5 py-4 text-base font-medium text-neutral-950 hover:bg-stone-200"
->
+  className="rounded-2xl bg-stone-100 px-5 py-4 text-base font-medium text-neutral-950 hover:bg-stone-200">
   Grade My Day →
 </button>
         </header>
