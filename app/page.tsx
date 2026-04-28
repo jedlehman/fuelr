@@ -152,7 +152,12 @@ export default function FuelrApp() {
             <h1 className="mt-3 text-5xl font-black tracking-tight md:text-7xl">Fuelr</h1>
             <p className="mt-3 max-w-2xl text-lg text-stone-400">Get a score for how you ate today. No calorie math. No barcode scanning. Just the truth and one move to improve it.</p>
           </div>
-          <button className="rounded-2xl bg-stone-100 px-5 py-4 text-base font-medium text-neutral-950 hover:bg-stone-200">Grade My Day →</button>
+          <button
+  onClick={() => window.scrollTo({ top: 300, behavior: "smooth" })}
+  className="rounded-2xl bg-stone-100 px-5 py-4 text-base font-medium text-neutral-950 hover:bg-stone-200"
+>
+  Grade My Day →
+</button>
         </header>
 
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
