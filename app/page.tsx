@@ -3,13 +3,13 @@
 
 import React, { useMemo, useState } from "react";
 
-const DEFAULT_LOG = `Breakfast: banana before BJJ and 30 oz water
+const EMPTY_LOG = `Breakfast:
 
-Lunch: two grass fed ground beef patties, avocado, smoothie with blueberries, peaches, milk, and whey protein
+Lunch:
 
-Snack: 3 baby carrots
+Dinner:
 
-Dinner: chili with ground beef, black beans, kidney beans, pinto beans, carrots, broccoli, and cauliflower`;
+Snacks:`;
 
 const categories = [
   { key: "protein", label: "Protein", max: 2 },
@@ -21,7 +21,7 @@ const categories = [
   { key: "goal", label: "Goal Fit", max: 0.5 }
 ];
 
-function roundScore(num: number) {
+function roundScore(num) {
   return Math.round(num * 10) / 10;
 }
 
@@ -35,6 +35,18 @@ function getLabel(score) {
 
 function countHits(text, words) {
   return words.filter((word) => text.includes(word)).length;
+}
+
+function hasRealFoodInput(foodLog) {
+  const cleaned = String(foodLog || "")
+    .toLowerCase()
+    .replace(/breakfast:/g, "")
+    .replace(/lunch:/g, "")
+    .replace(/dinner:/g, "")
+    .replace(/snacks:/g, "")
+    .trim();
+
+  return cleaned.length > 8;
 }
 
 function scoreFood(foodLog, goal) {
@@ -83,60 +95,55 @@ function buildBoosts(scores) {
   return boosts.slice(0, 3);
 }
 
-function runScoringTests() {
-  const testOne = scoreFood("chicken broccoli blueberries whey bjj", "performance");
-  const testTwo = scoreFood("chocolate cake cookies candy", "clean");
-  const testThree = scoreFood("beef beans carrots broccoli cauliflower milk whey", "clean");
-
-  return [
-    {
-      name: "Training day with protein should score strong",
-      passed: testOne.total >= 7,
-      score: testOne.total
-    },
-    {
-      name: "Sugar heavy day should score lower",
-      passed: testTwo.total < 6,
-      score: testTwo.total
-    },
-    {
-      name: "Protein plus fiber day should score high",
-      passed: testThree.total >= 8,
-      score: testThree.total
-    }
-  ];
-}
-
 function ProgressBar({ value, max }) {
   const percent = Math.min(100, Math.max(0, (value / max) * 100));
 
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-800">
-      <div className="h-full rounded-full bg-emerald-300" style={{ width: `${percent}%` }} />
+      <div className="h-full rounded-full bg-emerald-300 transition-all duration-500" style={{ width: `${percent}%` }} />
     </div>
   );
 }
 
 export default function FuelrApp() {
-  const [foodLog, setFoodLog] = useState(DEFAULT_LOG);
+  const [foodLog, setFoodLog] = useState(EMPTY_LOG);
   const [goal, setGoal] = useState("performance");
+  const [hasGraded, setHasGraded] = useState(false);
   const [appliedBoosts, setAppliedBoosts] = useState([]);
+  const [error, setError] = useState("");
 
   const result = useMemo(() => scoreFood(foodLog, goal), [foodLog, goal]);
-  const tests = useMemo(() => runScoringTests(), []);
-
   const boostTotal = appliedBoosts.reduce((sum, item) => sum + item.boost, 0);
   const boostedScore = roundScore(Math.min(10, result.total + boostTotal));
   const availableBoosts = buildBoosts(result.scores).filter((boost) => !appliedBoosts.some((item) => item.title === boost.title));
 
   function handleFoodChange(event) {
     setFoodLog(event.target.value);
+    setHasGraded(false);
     setAppliedBoosts([]);
+    setError("");
   }
 
   function handleGoalChange(event) {
     setGoal(event.target.value);
+    setHasGraded(false);
     setAppliedBoosts([]);
+    setError("");
+  }
+
+  function gradeDay() {
+    if (!hasRealFoodInput(foodLog)) {
+      setError("Add what you ate first, then Fuelr will grade your day.");
+      return;
+    }
+
+    setError("");
+    setHasGraded(true);
+
+    setTimeout(() => {
+      const results = document.getElementById("results");
+      if (results) results.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
   }
 
   function applyBoost(boost) {
@@ -145,44 +152,80 @@ export default function FuelrApp() {
 
   return (
     <main className="min-h-screen bg-neutral-950 p-4 text-stone-100 md:p-8">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="text-sm uppercase tracking-[0.3em] text-emerald-300">Food judged simply</div>
-            <h1 className="mt-3 text-5xl font-black tracking-tight md:text-7xl">Fuelr</h1>
-            <p className="mt-3 max-w-2xl text-lg text-stone-400">Get a score for how you ate today. No calorie math. No barcode scanning. Just the truth and one move to improve it.</p>
-          </div>
-          <button
-  onClick={() => window.scrollTo({ top: 300, behavior: "smooth" })}
-  className="rounded-2xl bg-stone-100 px-5 py-4 text-base font-medium text-neutral-950 hover:bg-stone-200">
-  Grade My Day →
-</button>
+      <div className="mx-auto max-w-6xl space-y-8">
+        <header className="pt-4 text-center md:pt-10">
+          <h1 className="mt-4 text-6xl font-black tracking-tight md:text-8xl">Fuelr</h1>
+          <p className="mt-3 text-lg text-stone-300 md:text-xl">Your food, judged.</p>
         </header>
 
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6 shadow-2xl lg:col-span-2">
-            <h2 className="text-xl font-medium">What did you eat?</h2>
-            <textarea value={foodLog} onChange={handleFoodChange} className="mt-4 min-h-[340px] w-full resize-none rounded-2xl border border-neutral-800 bg-neutral-950 p-4 leading-relaxed text-stone-200 outline-none focus:ring-2 focus:ring-emerald-300" />
-
-            <label className="mt-5 block text-sm text-stone-400">Goal</label>
-            <select value={goal} onChange={handleGoalChange} className="mt-2 w-full rounded-2xl border border-neutral-800 bg-neutral-950 p-3 text-stone-200 outline-none">
-              <option value="performance">Performance</option>
-              <option value="clean">Clean Eating</option>
-              <option value="fatloss">Fat Loss</option>
-              <option value="muscle">Muscle Gain</option>
-            </select>
+        <section className="mx-auto max-w-3xl rounded-[2rem] border border-neutral-800 bg-neutral-900/80 p-5 shadow-2xl md:p-8">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">What did you eat today?</h2>
+              <p className="mt-2 text-sm text-stone-500">Type it naturally. Rough portions are fine.</p>
+            </div>
+            <div className="rounded-full border border-neutral-800 bg-neutral-950 px-4 py-2 text-sm text-stone-400">Fresh day</div>
           </div>
 
-          <div className="space-y-6 lg:col-span-3">
-            <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6 shadow-2xl md:p-8">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-center">
+          <textarea
+            value={foodLog}
+            onChange={handleFoodChange}
+            className="mt-6 min-h-[300px] w-full resize-none rounded-3xl border border-neutral-800 bg-neutral-950 p-5 text-lg leading-relaxed text-stone-200 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-300/20"
+          />
+
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto] md:items-end">
+            <div>
+              <label className="block text-sm text-stone-400">Goal</label>
+              <select value={goal} onChange={handleGoalChange} className="mt-2 w-full rounded-2xl border border-neutral-800 bg-neutral-950 p-4 text-stone-200 outline-none focus:border-emerald-300">
+                <option value="performance">Performance</option>
+                <option value="clean">Clean Eating</option>
+                <option value="fatloss">Fat Loss</option>
+                <option value="muscle">Muscle Gain</option>
+              </select>
+            </div>
+
+            <button
+              onClick={gradeDay}
+              className="rounded-2xl bg-stone-100 px-8 py-4 text-base font-bold text-neutral-950 shadow-lg shadow-emerald-300/10 transition hover:bg-emerald-300"
+            >
+              Grade My Day →
+            </button>
+          </div>
+
+          {error && <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">{error}</div>}
+        </section>
+
+        {!hasGraded && (
+          <section className="mx-auto grid max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6">
+              <div className="text-sm text-emerald-300">01</div>
+              <h3 className="mt-3 text-xl font-semibold">Enter your meals</h3>
+              <p className="mt-2 text-stone-500">No tracking. No measuring. Just type what you ate.</p>
+            </div>
+            <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6">
+              <div className="text-sm text-emerald-300">02</div>
+              <h3 className="mt-3 text-xl font-semibold">Get judged</h3>
+              <p className="mt-2 text-stone-500">Fuelr grades protein, whole foods, fiber, carbs, fats, and sugar.</p>
+            </div>
+            <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6">
+              <div className="text-sm text-emerald-300">03</div>
+              <h3 className="mt-3 text-xl font-semibold">Boost the score</h3>
+              <p className="mt-2 text-stone-500">Get one quick move that can improve your day right now.</p>
+            </div>
+          </section>
+        )}
+
+        {hasGraded && (
+          <section id="results" className="space-y-6 pt-4">
+            <div className="rounded-[2rem] border border-neutral-800 bg-neutral-900 p-6 shadow-2xl md:p-8">
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:items-center">
                 <div>
-                  <div className="inline-flex rounded-full bg-emerald-300/10 px-3 py-1 text-sm text-emerald-300">{getLabel(boostedScore)}</div>
+                  <div className="inline-flex rounded-full bg-emerald-300/10 px-4 py-2 text-sm font-medium text-emerald-300">{getLabel(boostedScore)}</div>
                   <div className="mt-5 flex items-end gap-2">
-                    <div className="text-8xl font-semibold tracking-tighter md:text-9xl">{boostedScore}</div>
+                    <div className="text-8xl font-black tracking-tighter md:text-9xl">{boostedScore}</div>
                     <div className="pb-4 text-2xl text-stone-500">/10</div>
                   </div>
-                  <p className="mt-4 text-lg text-stone-300">The app rewards protein, whole foods, fiber, smart carb timing, fat control, sugar control, and goal fit.</p>
+                  <p className="mt-4 max-w-xl text-lg text-stone-300">This score is based on food quality, protein, vegetables, carb timing, fat control, sugar control, and how well the day matched your goal.</p>
                 </div>
 
                 <div className="space-y-3">
@@ -204,13 +247,13 @@ export default function FuelrApp() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6 shadow-xl">
-                <h3 className="text-xl font-medium">Food Judgment</h3>
+                <h3 className="text-xl font-semibold">Food Judgment</h3>
                 <p className="mt-4 leading-relaxed text-stone-300">You are not tracking calories. You are grading the quality of the day. The score rewards real food, protein, fiber, smart carb timing, and controlled snacks.</p>
                 <div className="mt-5 rounded-2xl border border-neutral-800 bg-neutral-950 p-4 text-stone-300"><span className="font-medium text-stone-100">One fix:</span> bring up the weakest category with the smallest useful move.</div>
               </div>
 
               <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6 shadow-xl">
-                <h3 className="text-xl font-medium">Quick Boosts</h3>
+                <h3 className="text-xl font-semibold">Quick Boosts</h3>
                 {availableBoosts.length === 0 ? (
                   <div className="mt-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4 text-emerald-200">No obvious boosts left. Protect the score.</div>
                 ) : (
@@ -230,21 +273,8 @@ export default function FuelrApp() {
                 )}
               </div>
             </div>
-
-            <div className="rounded-3xl border border-neutral-800 bg-neutral-900 p-6 shadow-xl">
-              <h3 className="text-xl font-medium">Scoring Tests</h3>
-              <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-                {tests.map((test) => (
-                  <div key={test.name} className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
-                    <div className={test.passed ? "text-emerald-300" : "text-red-300"}>{test.passed ? "PASS" : "FAIL"}</div>
-                    <div className="mt-2 text-sm text-stone-300">{test.name}</div>
-                    <div className="mt-2 text-sm text-stone-500">Score: {test.score}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </main>
   );
