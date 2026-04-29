@@ -108,7 +108,7 @@ function ProgressBar({ value, max }) {
 function MealInput({ label, value, onChange, placeholder }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition focus-within:border-slate-900 focus-within:shadow-md sm:p-5">
-      <label className="mb-3 block text-xs font-bold uppercase tracking-[0.2em] text-slate-400">{label}</label>
+      <label className="mb-3 block text-xs font-bold uppercase tracking-[0.2em] text-slate-600">{label}</label>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -121,7 +121,7 @@ function MealInput({ label, value, onChange, placeholder }) {
 
 export default function FuelrApp() {
   const [meals, setMeals] = useState({ breakfast: "", lunch: "", dinner: "", snacks: "" });
-  const [goal, setGoal] = useState("performance");
+  const goal = "performance";
   const [hasGraded, setHasGraded] = useState(false);
   const [appliedBoosts, setAppliedBoosts] = useState([]);
   const [error, setError] = useState("");
@@ -161,7 +161,7 @@ export default function FuelrApp() {
     <main className="min-h-screen bg-[#f7f5ef] px-4 py-5 text-slate-950 sm:px-6 sm:py-8 md:px-8 md:py-12">
       <div className="mx-auto max-w-6xl space-y-6 sm:space-y-8">
         <header className="rounded-[2rem] border border-white bg-white/70 px-5 py-8 text-center shadow-sm backdrop-blur-xl sm:px-8 sm:py-10 md:py-12">
-          <div className="mx-auto mb-4 inline-flex rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.28em] text-slate-500">Daily food scoring</div>
+          
           <h1 className="text-6xl font-black tracking-[-0.08em] text-slate-950 sm:text-7xl md:text-8xl">Fuelr</h1>
           <p className="mt-3 text-xl font-semibold text-slate-600 sm:text-2xl">Your food, judged.</p>
 
@@ -196,20 +196,10 @@ export default function FuelrApp() {
             <MealInput label="Snacks" value={meals.snacks} onChange={(value) => updateMeal("snacks", value)} placeholder="Example: milk, berries, cookies, chips" />
           </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Goal</label>
-              <select value={goal} onChange={(e) => { setGoal(e.target.value); setHasGraded(false); }} className="mt-2 w-full rounded-2xl border border-slate-200 bg-white p-4 text-slate-950 outline-none transition focus:border-slate-950">
-                <option value="performance">Performance</option>
-                <option value="clean">Clean Eating</option>
-                <option value="fatloss">Fat Loss</option>
-                <option value="muscle">Muscle Gain</option>
-              </select>
-            </div>
-
+          <div className="mt-6">
             <button
               onClick={gradeDay}
-              className="w-full rounded-2xl bg-slate-950 px-8 py-4 text-base font-black text-white shadow-lg shadow-slate-300 transition hover:-translate-y-0.5 hover:bg-emerald-600 active:translate-y-0 sm:w-auto"
+              className="w-full rounded-2xl bg-slate-950 px-8 py-4 text-base font-black text-white shadow-lg shadow-slate-300 transition hover:-translate-y-0.5 hover:bg-emerald-600 active:translate-y-0"
             >
               Grade My Day →
             </button>
